@@ -18,7 +18,6 @@
 
 #include <android/hardware/power/1.1/IPower.h>
 #include <android/hardware/power/IPower.h>
-#include <vendor/samsung/hardware/miscpower/2.0/ISehMiscPower.h>
 #include <binder/IServiceManager.h>
 #include <hardware/power.h>
 #include <hardware_legacy/power.h>
@@ -56,8 +55,6 @@ std::mutex PowerHalLoader::gHalMutex;
 sp<IPower> PowerHalLoader::gHalAidl = nullptr;
 sp<V1_0::IPower> PowerHalLoader::gHalHidlV1_0 = nullptr;
 sp<V1_1::IPower> PowerHalLoader::gHalHidlV1_1 = nullptr;
-sp<vendor::samsung::hardware::miscpower::V2_0::ISehMiscPower> PowerHalLoader::gHalHidlSeh = nullptr;
-
 
 void PowerHalLoader::unloadAll() {
     std::lock_guard<std::mutex> lock(gHalMutex);
@@ -85,13 +82,6 @@ sp<V1_1::IPower> PowerHalLoader::loadHidlV1_1() {
     return loadHal<V1_1::IPower>(gHalExists, gHalHidlV1_1, loadFn, "HIDL v1.1");
 }
 
-sp<vendor::samsung::hardware::miscpower::V2_0::ISehMiscPower> PowerHalLoader::loadHidlSeh() {
-    std::lock_guard<std::mutex> lock(gHalMutex);
-    static bool gHalExists = true;
-    static auto loadFn = []() { return vendor::samsung::hardware::miscpower::V2_0::ISehMiscPower::getService(); };
-    return loadHal<vendor::samsung::hardware::miscpower::V2_0::ISehMiscPower>(gHalExists, gHalHidlSeh, loadFn, "HIDL SEH v1.1");
-}
-
 sp<V1_0::IPower> PowerHalLoader::loadHidlV1_0Locked() {
     static bool gSecHalExists = true;
     static auto loadFnSec = []() { return V1_0::IPower::getService("power"); };
@@ -99,9 +89,7 @@ sp<V1_0::IPower> PowerHalLoader::loadHidlV1_0Locked() {
 
     static bool gHalExists = true;
     static auto loadFn = []() { return V1_0::IPower::getService(); };
-    if(hal == nullptr)
-        hal = loadHal<V1_0::IPower>(gHalExists, gHalHidlV1_0, loadFn, "HIDL v1.0");
-    return hal;
+    return loadHal<V1_0::IPower>(gHalExists, gHalHidlV1_0, loadFn, "HIDL v1.0");
 }
 
 // -------------------------------------------------------------------------------------------------
